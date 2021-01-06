@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react'
-import { Row, Col, Button, List, Avatar, Space, Tag } from 'antd'
+import { Row, Col, Button, List, Avatar, Space } from 'antd'
 import { getApp } from '@/utils'
 import { useHistory } from 'react-router-dom'
-// import { config } from '@/config'
-import { MessageOutlined, LikeOutlined, StarOutlined } from '@ant-design/icons';
+import { LikeOutlined } from '@ant-design/icons';
 
 interface Article {
   _id: string,
@@ -11,26 +10,26 @@ interface Article {
   description: string,
   content: string,
   avatar?: string,
+  like: number
 }
 export const Home: React.FC<{}> = () => {
   /**初始化 */
   const app = getApp()
   const db = app.database()
   const history = useHistory()
+  const auth = app.auth();
   const [loginLoading, setLoginLoading] = useState(false)
-
-
-  // 跳转
-  const toAbout = () => {
-    history.push('/about')
-  }
 
   /** 列表 */
   const [listData, setlistData] = useState([])
   const getListData = async () => {
-    //获取数据库数据
-    const { data } = await db.collection('article').get()
-    setlistData(data)
+    const loginState = await auth.getLoginState();
+    console.log(loginState.isAnonymous); // true
+    if (loginState.isAnonymous) {
+      //获取数据库数据
+      const { data } = await db.collection('article').get()
+      setlistData([...listData, data])
+    }
   }
   const IconText = (result: any) => (
     <Space>
@@ -47,17 +46,13 @@ export const Home: React.FC<{}> = () => {
   /** 登录,获取数据 */
   async function login() {
     setLoginLoading(true)
-    const auth = app.auth();
     await auth.anonymousAuthProvider().signIn();
     // 匿名登录成功检测登录状态isAnonymous字段为true
-    const loginState = await auth.getLoginState();
-    console.log(loginState.isAnonymous); // true
-    getListData() // 获取数据
     setLoginLoading(false)
   }
   /** 生命周期 */
   useEffect(() => {
-    login() // 登录
+    getListData() // 获取数据
   }, [])
 
   return (
@@ -77,9 +72,9 @@ export const Home: React.FC<{}> = () => {
           <List.Item
             key={item.title}
             actions={[
-              <IconText icon={StarOutlined} text="156" key="list-vertical-star-o" />,
-              <IconText icon={LikeOutlined} text="156" key="list-vertical-like-o" />,
-              <IconText icon={MessageOutlined} text="2" key="list-vertical-message" />,
+              // <IconText icon={StarOutlined} text="156" key="list-vertical-star-o" />,
+              <IconText icon={LikeOutlined} text={item.like} key="list-vertical-like-o" />,
+              // <IconText icon={MessageOutlined} text="2" key="list-vertical-message" />,
             ]}
             extra={
               <img
@@ -99,7 +94,7 @@ export const Home: React.FC<{}> = () => {
       />
       <Row>
         <Col span={8} offset={8}>
-          <Button onClick={toAbout}>about</Button>
+          <Button onClick={login}>登录</Button>
         </Col>
       </Row>
     </div>

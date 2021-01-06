@@ -1,19 +1,30 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Layout, Card, Avatar, Affix, Menu } from 'antd'
-// import { useHistory } from 'react-router'
 import { IRouteProps } from '@/routes/config'
-import { config } from '@/config'
 import './index.less'
+import { useHistory, useLocation } from 'react-router-dom'
 
 const { Header, Content } = Layout
-const { SubMenu } = Menu;
-
 
 export interface ILayoutProps {
   menus: IRouteProps[]
 }
 
 export function MainLayout(props: React.PropsWithChildren<ILayoutProps>) {
+  /**初始化 */
+  const history = useHistory()
+  const location = useLocation()
+
+  const [selectedKeys, setSelectedKeys] = useState<string[]>([]) // 初始选中的菜单项 key 数组
+  /** 点击菜单时 */
+  const menuSelect = (result: any) => {
+    history.replace(result.key)
+  }
+
+  /**生命周期 */
+  useEffect(() => {
+    setSelectedKeys(() => [location.pathname])
+  }, [location])
 
   return (
     <div className="App">
@@ -23,26 +34,20 @@ export function MainLayout(props: React.PropsWithChildren<ILayoutProps>) {
             <div className="logo">
               <Avatar
                 style={{ height: '40px', width: '40px' }}
-                src={`${config.storageBaseUrl}/icon.png`}
+                src={`https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png`}
               />
             </div>
-            <Menu mode="horizontal" theme="dark">
-              <Menu.Item key="mail">
-                Navigation One
+            <Menu mode="horizontal" onSelect={menuSelect} selectedKeys={selectedKeys} theme="dark">
+              <Menu.Item key="/">
+                首页
               </Menu.Item>
-              <Menu.Item key="app">
-                Navigation Two
+              <Menu.Item key="/about">
+                关于
               </Menu.Item>
-              <SubMenu key="SubMenu" title="Navigation Three - Submenu">
-                <Menu.ItemGroup title="Item 1">
-                  <Menu.Item key="setting:1">Option 1</Menu.Item>
-                  <Menu.Item key="setting:2">Option 2</Menu.Item>
-                </Menu.ItemGroup>
-                <Menu.ItemGroup title="Item 2">
-                  <Menu.Item key="setting:3">Option 3</Menu.Item>
-                  <Menu.Item key="setting:4">Option 4</Menu.Item>
-                </Menu.ItemGroup>
-              </SubMenu>
+              {/* <SubMenu key="/about" title="关于">
+                <Menu.Item key="about:1">关于本人</Menu.Item>
+                <Menu.Item key="about:2">关于本网站</Menu.Item>
+              </SubMenu> */}
             </Menu>
           </Header>
         </Affix>
